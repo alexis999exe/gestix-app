@@ -4,7 +4,7 @@ plugins {
 }
 
 android {
-    namespace = "com.example.reloj"
+    namespace = "com.example.gesticks"
     compileSdk {
         version = release(36) {
             minorApiLevel = 1
@@ -12,7 +12,7 @@ android {
     }
 
     defaultConfig {
-        applicationId = "com.example.reloj"
+        applicationId = "com.example.gesticks"
         minSdk = 35
         targetSdk = 36
         versionCode = 1
@@ -57,6 +57,7 @@ dependencies {
     implementation(libs.compose.ui.tooling)
     implementation(libs.guava)
     implementation(libs.play.services.wearable)
+    implementation(libs.retrofit.converter.gson) // Usamos el convertidor que ya tiene Gson
     androidTestImplementation(platform(libs.androidx.compose.bom))
     androidTestImplementation(libs.androidx.compose.ui.test.junit4)
     debugImplementation(libs.androidx.compose.ui.test.manifest)

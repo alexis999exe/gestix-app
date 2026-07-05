@@ -56,6 +56,9 @@ dependencies {
     implementation(libs.retrofit.converter.gson)
     implementation(libs.okhttp.logging)
 
+    // Wearable
+    implementation(libs.play.services.wearable)
+
     // Glide for GIFs
     implementation(libs.glide)
     annotationProcessor(libs.glide.compiler)

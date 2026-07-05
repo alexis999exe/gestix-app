@@ -26,14 +26,57 @@ import androidx.wear.compose.material3.lazy.rememberTransformationSpec
 import androidx.wear.compose.material3.lazy.transformedHeight
 import androidx.wear.compose.ui.tooling.preview.WearPreviewDevices
 import com.example.reloj.presentation.theme.GesticksTheme
+import com.google.android.gms.wearable.DataClient
+import com.google.android.gms.wearable.DataEvent
+import com.google.android.gms.wearable.DataEventBuffer
+import com.google.android.gms.wearable.DataMapItem
+import com.google.android.gms.wearable.Wearable
+import com.google.gson.Gson
+import com.google.gson.reflect.TypeToken
 import kotlinx.coroutines.delay
 import kotlinx.coroutines.launch
 
-class MainActivity : ComponentActivity() {
+class MainActivity : ComponentActivity(), DataClient.OnDataChangedListener {
+    private var _ticketsState = mutableStateOf<List<WatchTicket>>(emptyList())
+    private val gson = Gson()
+
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
         setContent {
-            GesticksWatchApp()
+            GesticksWatchApp(ticketsState = _ticketsState)
+        }
+    }
+
+    override fun onResume() {
+        super.onResume()
+        Wearable.getDataClient(this).addListener(this)
+    }
+
+    override fun onPause() {
+        super.onPause()
+        Wearable.getDataClient(this).removeListener(this)
+    }
+
+    override fun onDataChanged(dataEvents: DataEventBuffer) {
+        dataEvents.forEach { event ->
+            if (event.type == DataEvent.TYPE_CHANGED && event.dataItem.uri.path == "/tickets") {
+                val dataMap = DataMapItem.fromDataItem(event.dataItem).dataMap
+                val json = dataMap.getString("tickets_json")
+                if (json != null) {
+                    val type = object : TypeToken<List<Map<String, Any>>>() {}.type
+                    val rawTickets: List<Map<String, Any>> = gson.fromJson(json, type)
+                    
+                    val mappedTickets = rawTickets.map { raw ->
+                        WatchTicket(
+                            id = (raw["id"] as? Double)?.toInt()?.toString() ?: "0",
+                            title = raw["titulo"] as? String ?: "Sin título",
+                            priority = raw["prioridad"] as? String ?: "Baja",
+                            isResolved = (raw["status"] as? String)?.lowercase().let { it == "cerrado" || it == "resuelto" }
+                        )
+                    }
+                    _ticketsState.value = mappedTickets
+                }
+            }
         }
     }
 }
@@ -41,7 +84,7 @@ class MainActivity : ComponentActivity() {
 data class WatchTicket(val id: String, val title: String, val priority: String, val isResolved: Boolean = false)
 
 @Composable
-fun GesticksWatchApp() {
+fun GesticksWatchApp(ticketsState: MutableState<List<WatchTicket>>) {
     GesticksTheme {
         AppScaffold {
             val listState = rememberTransformingLazyColumnState()
@@ -49,14 +92,7 @@ fun GesticksWatchApp() {
             val scope = rememberCoroutineScope()
             val view = LocalView.current
             
-            var tickets by remember { 
-                mutableStateOf(listOf(
-                    WatchTicket("1", "Error Servidor", "Crítica"),
-                    WatchTicket("2", "Ajuste UI", "Media"),
-                    WatchTicket("3", "Bug Login", "Alta"),
-                    WatchTicket("4", "Wifi Caído", "Crítica")
-                ))
-            }
+            var tickets by ticketsState
 
             ScreenScaffold(scrollState = listState) { contentPadding ->
                 TransformingLazyColumn(
@@ -204,5 +240,11 @@ fun TransformingLazyColumnItemScope.TicketCard(
 @WearPreviewDevices
 @Composable
 fun WatchPreview() {
-    GesticksWatchApp()
+    val dummyTickets = remember {
+        mutableStateOf(listOf(
+            WatchTicket("1", "Error Servidor", "Crítica"),
+            WatchTicket("2", "Ajuste UI", "Media")
+        ))
+    }
+    GesticksWatchApp(ticketsState = dummyTickets)
 }
