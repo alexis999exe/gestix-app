@@ -61,10 +61,7 @@ class LoginActivity : AppCompatActivity() {
             }
         }
 
-        binding.btnCreateAccount.setOnClickListener {
-            it.performHapticFeedback(HapticFeedbackConstants.VIRTUAL_KEY)
-            // Lógica para crear cuenta
-        }
+
     }
 
     private fun observeViewModel() {
