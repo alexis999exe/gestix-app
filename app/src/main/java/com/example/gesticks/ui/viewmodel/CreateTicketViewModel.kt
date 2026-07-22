@@ -5,7 +5,6 @@ import androidx.lifecycle.AndroidViewModel
 import androidx.lifecycle.LiveData
 import androidx.lifecycle.MutableLiveData
 import androidx.lifecycle.viewModelScope
-import com.example.gesticks.data.model.Ticket
 import com.example.gesticks.data.network.SessionManager
 import com.example.gesticks.data.repository.TicketRepository
 import kotlinx.coroutines.launch
@@ -36,28 +35,22 @@ class CreateTicketViewModel(application: Application) : AndroidViewModel(applica
         if (_isLoading.value == true) return // Evitar múltiples peticiones simultáneas
 
         val token = sessionManager.fetchAuthToken() ?: return
-        val userId = sessionManager.fetchUserId()
 
         _isLoading.value = true
         _errorMessage.value = null
 
-        val sdf = SimpleDateFormat("yyyy-MM-dd'T'HH:mm:ss'Z'", Locale.getDefault())
-        val currentDate = sdf.format(Date())
-
-        val newTicket = Ticket(
-            id = (1000..99999).random(), // Generamos un ID aleatorio para evitar el error de duplicados del backend
-            title = title,
-            description = description,
-            priority = _priority.value ?: "media",
-            date = currentDate,
-            authorId = userId,
-            categoryId = 1,
-            status = "Abierto"
-        )
+        val priority = _priority.value ?: "media"
 
         viewModelScope.launch {
             try {
-                val response = repository.createTicket(token, newTicket)
+                val response = repository.createTicket(
+                    token = token,
+                    titulo = title,
+                    descripcion = description,
+                    prioridad = priority,
+                    categoriaId = 1, // Default category
+                    archivo = null
+                )
                 if (response.isSuccessful) {
                     _createResult.value = true
                 } else {

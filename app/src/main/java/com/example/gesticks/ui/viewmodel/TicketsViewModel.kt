@@ -46,7 +46,7 @@ class TicketsViewModel(application: Application) : AndroidViewModel(application)
             try {
                 val response = repository.getTickets(token)
                 if (response.isSuccessful) {
-                    val allTickets = response.body() ?: emptyList()
+                    val allTickets = response.body()?.data ?: emptyList()
                     // Filtramos por usuario_autor_id (tu ID de usuario)
                     val userTickets = allTickets.filter { it.authorId == userId }
                     _tickets.value = userTickets
@@ -54,8 +54,8 @@ class TicketsViewModel(application: Application) : AndroidViewModel(application)
                     // Sincronizar con el reloj
                     wearSyncManager.syncTickets(userTickets)
                     
-                    _activeCount.value = userTickets.count { it.status.lowercase() != "cerrado" && it.status.lowercase() != "resuelto" }
-                    _resolvedCount.value = userTickets.count { it.status.lowercase() == "cerrado" || it.status.lowercase() == "resuelto" }
+                    _activeCount.value = userTickets.count { it.status.lowercase() != "resuelto" }
+                    _resolvedCount.value = userTickets.count { it.status.lowercase() == "resuelto" }
                 }
             } catch (e: Exception) {
                 // Manejar error

@@ -21,13 +21,13 @@ class LoginViewModel : ViewModel() {
     private val _error = MutableLiveData<String>()
     val error: LiveData<String> = _error
 
-    fun login(correo: String, contrasena: String) {
+    fun login(email: String, password: String) {
         _isLoading.value = true
-        println("DEBUG_GESTICKS: Enviando -> Correo: [$correo], Pass: [$contrasena]")
+        println("DEBUG_GESTICKS: Enviando -> Email: [$email]")
         
         viewModelScope.launch {
             try {
-                val response = repository.login(correo, contrasena)
+                val response = repository.login(email, password)
                 if (response.isSuccessful) {
                     _loginResponse.value = response
                 } else {

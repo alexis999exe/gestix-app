@@ -71,9 +71,9 @@ class LoginActivity : AppCompatActivity() {
         viewModel.loginResponse.observe(this) { response ->
             if (response != null && response.isSuccessful) {
                 val loginData = response.body()
-                if (loginData?.token != null && loginData.user != null) {
+                if (loginData?.accessToken != null && loginData.user != null) {
                     val sessionManager = com.example.gesticks.data.network.SessionManager(this)
-                    sessionManager.saveAuthToken(loginData.token)
+                    sessionManager.saveAuthToken(loginData.accessToken)
                     sessionManager.saveUserId(loginData.user.id)
                     sessionManager.saveUserName(loginData.user.name)
                     sessionManager.saveUserEmail(loginData.user.email)

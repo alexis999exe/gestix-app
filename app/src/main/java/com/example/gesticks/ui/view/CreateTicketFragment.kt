@@ -56,25 +56,9 @@ class CreateTicketFragment : Fragment() {
             .setDuration(1000)
             .setStartDelay(300)
             .start()
-
-        // Pulse animation for voice button
-        val pulseAnimation = ScaleAnimation(
-            1f, 1.05f, 1f, 1.05f,
-            Animation.RELATIVE_TO_SELF, 0.5f,
-            Animation.RELATIVE_TO_SELF, 0.5f
-        ).apply {
-            duration = 1000
-            repeatMode = Animation.REVERSE
-            repeatCount = Animation.INFINITE
-        }
-        binding.btnVoice.startAnimation(pulseAnimation)
     }
 
     private fun setupListeners() {
-        binding.btnVoice.setOnClickListener {
-            it.performHapticFeedback(HapticFeedbackConstants.LONG_PRESS)
-            // Lógica de voz
-        }
 
         binding.btnPriorityLow.setOnClickListener { selectPriority("baja") }
         binding.btnPriorityMedium.setOnClickListener { selectPriority("media") }
@@ -168,7 +152,6 @@ class CreateTicketFragment : Fragment() {
 
     override fun onDestroyView() {
         super.onDestroyView()
-        binding.btnVoice.clearAnimation()
         _binding = null
     }
 }

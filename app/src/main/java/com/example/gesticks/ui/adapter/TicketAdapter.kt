@@ -2,8 +2,8 @@ package com.example.gesticks.ui.adapter
 
 import android.view.HapticFeedbackConstants
 import android.view.LayoutInflater
+import android.view.View
 import android.view.ViewGroup
-import android.view.animation.AnimationUtils
 import androidx.core.content.ContextCompat
 import androidx.recyclerview.widget.RecyclerView
 import com.example.gesticks.R
@@ -12,7 +12,9 @@ import com.example.gesticks.databinding.ItemTicketBinding
 
 class TicketAdapter(private val tickets: List<Ticket>) : RecyclerView.Adapter<TicketAdapter.TicketViewHolder>() {
 
-    class TicketViewHolder(val binding: ItemTicketBinding) : RecyclerView.ViewHolder(binding.root)
+    class TicketViewHolder(val binding: ItemTicketBinding) : RecyclerView.ViewHolder(binding.root) {
+        var isFlipped = false
+    }
 
     override fun onCreateViewHolder(parent: ViewGroup, viewType: Int): TicketViewHolder {
         val binding = ItemTicketBinding.inflate(LayoutInflater.from(parent.context), parent, false)
@@ -24,17 +26,21 @@ class TicketAdapter(private val tickets: List<Ticket>) : RecyclerView.Adapter<Ti
         val context = holder.itemView.context
 
         with(holder.binding) {
+            // Front Data
             tvTicketId.text = "#${ticket.id}"
             tvTicketDate.text = ticket.date
             tvTicketTitle.text = ticket.title
-            tvStatusBadge.text = ticket.status
+            tvStatusBadge.text = ticket.status.replaceFirstChar { it.uppercase() }
             tvPriorityValue.text = ticket.priority.replaceFirstChar { it.uppercase() }
 
+            // Back Data
+            tvTicketDescription.text = ticket.description
+
             // Status color logic
-            val statusColor = when (ticket.status) {
-                "En proceso" -> ContextCompat.getColor(context, R.color.status_in_progress)
-                "Abierto" -> ContextCompat.getColor(context, R.color.status_open)
-                "Cerrado" -> ContextCompat.getColor(context, R.color.status_closed)
+            val statusColor = when (ticket.status.lowercase()) {
+                "pendiente" -> ContextCompat.getColor(context, R.color.status_in_progress)
+                "abierto" -> ContextCompat.getColor(context, R.color.status_open)
+                "resuelto" -> ContextCompat.getColor(context, R.color.status_closed)
                 else -> ContextCompat.getColor(context, R.color.status_closed)
             }
 
@@ -43,7 +49,7 @@ class TicketAdapter(private val tickets: List<Ticket>) : RecyclerView.Adapter<Ti
 
             // Priority icon logic
             val iconRes = when (ticket.priority.lowercase()) {
-                "crítica" -> R.drawable.ic_alert_circle
+                "critica" -> R.drawable.ic_alert_circle
                 "alta" -> R.drawable.ic_warning
                 "media" -> R.drawable.ic_info_circle
                 else -> R.drawable.ic_check_circle
@@ -51,74 +57,55 @@ class TicketAdapter(private val tickets: List<Ticket>) : RecyclerView.Adapter<Ti
             ivPriorityIcon.setImageResource(iconRes)
             ivPriorityIcon.setColorFilter(statusColor)
 
-            // Entrada Animada Premium (Rotación 3D + Slide)
-            holder.itemView.alpha = 0f
-            holder.itemView.translationX = -100f
-            holder.itemView.rotationY = -15f
+            // Reset state
+            holder.isFlipped = false
+            frontLayout.visibility = View.VISIBLE
+            backLayout.visibility = View.GONE
+            cardTicket.rotationY = 0f
+
+            // Click listener for 3D Flip
+            holder.itemView.setOnClickListener {
+                it.performHapticFeedback(HapticFeedbackConstants.VIRTUAL_KEY)
+                flipCard(holder)
+            }
             
+            // Initial animation
+            holder.itemView.alpha = 0f
+            holder.itemView.translationY = 50f
             holder.itemView.animate()
                 .alpha(1f)
-                .translationX(0f)
-                .rotationY(0f)
-                .setDuration(600)
-                .setInterpolator(android.view.animation.DecelerateInterpolator())
+                .translationY(0f)
+                .setDuration(500)
+                .setStartDelay(position * 50L)
                 .start()
+        }
+    }
 
-            holder.itemView.setOnLongClickListener {
-                it.performHapticFeedback(HapticFeedbackConstants.CONFIRM)
+    private fun flipCard(holder: TicketViewHolder) {
+        val binding = holder.binding
+        val card = binding.cardTicket
+        
+        card.animate()
+            .rotationY(90f)
+            .setDuration(400)
+            .withEndAction {
+                if (holder.isFlipped) {
+                    binding.frontLayout.visibility = View.VISIBLE
+                    binding.backLayout.visibility = View.GONE
+                    holder.isFlipped = false
+                } else {
+                    binding.frontLayout.visibility = View.GONE
+                    binding.backLayout.visibility = View.VISIBLE
+                    holder.isFlipped = true
+                }
                 
-                // 1. Fase de Vibración
-                val shake = AnimationUtils.loadAnimation(context, R.anim.shake_ticket)
-                it.startAnimation(shake)
-                
-                it.postDelayed({
-                    // 2. Aparece el Sello con Impacto
-                    tvCompletedStamp.visibility = android.view.View.VISIBLE
-                    tvCompletedStamp.alpha = 0f
-                    tvCompletedStamp.scaleX = 5f
-                    tvCompletedStamp.scaleY = 5f
-                    
-                    tvCompletedStamp.animate()
-                        .alpha(1f)
-                        .scaleX(1f)
-                        .scaleY(1f)
-                        .setDuration(200)
-                        .withEndAction {
-                            it.performHapticFeedback(HapticFeedbackConstants.LONG_PRESS)
-                            
-                            // 3. Fase de Ruptura y Caída
-                            it.animate()
-                                .translationY(2000f) // Cae al vacío
-                                .rotation(35f)      // Rota mientras cae
-                                .scaleX(0.7f)
-                                .scaleY(0.7f)
-                                .alpha(0f)
-                                .setDuration(800)
-                                .setInterpolator(android.view.animation.AccelerateInterpolator())
-                                .withEndAction {
-                                    // Aquí se eliminaría de la lista real en producción
-                                    it.visibility = android.view.View.GONE
-                                }
-                                .start()
-                        }
-                        .start()
-                }, 500)
-                true
-            }
-
-            holder.itemView.setOnClickListener {
-                it.performHapticFeedback(HapticFeedbackConstants.LONG_PRESS)
-                // Animación de pulso
-                it.animate()
-                    .scaleX(0.96f)
-                    .scaleY(0.96f)
-                    .setDuration(100)
-                    .withEndAction {
-                        it.animate().scaleX(1f).scaleY(1f).setDuration(100).start()
-                    }
+                card.rotationY = -90f
+                card.animate()
+                    .rotationY(0f)
+                    .setDuration(400)
                     .start()
             }
-        }
+            .start()
     }
 
     override fun getItemCount() = tickets.size

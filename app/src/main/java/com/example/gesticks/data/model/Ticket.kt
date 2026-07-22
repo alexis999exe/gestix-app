@@ -12,7 +12,7 @@ data class Ticket(
     @SerializedName("descripcion")
     val description: String,
     @SerializedName("prioridad")
-    val priority: String,
+    val priority: String, // baja|media|alta|critica
     @SerializedName("fecha_creacion")
     val date: String,
     @SerializedName("fecha_asignacion")
@@ -23,8 +23,21 @@ data class Ticket(
     val authorId: Int,
     @SerializedName("categoria_id")
     val categoryId: Int,
-    @SerializedName("comentarios")
-    val comments: List<Int> = emptyList(),
-    // Mantenemos status para la UI, aunque lo calcularemos o mapearemos
-    val status: String = "Abierto"
+    @SerializedName("departamento_id")
+    val departmentId: Int? = null,
+    @SerializedName("asignado_a_id")
+    val assignedToId: Int? = null,
+    @SerializedName("estado")
+    val status: String = "abierto", // abierto|pendiente|resuelto
+    @SerializedName("archivo_path")
+    val filePath: String? = null,
+    @SerializedName("archivos")
+    val files: List<TicketFile> = emptyList()
+)
+
+data class TicketFile(
+    val id: Int,
+    @SerializedName("nombre_original")
+    val originalName: String,
+    val url: String
 )

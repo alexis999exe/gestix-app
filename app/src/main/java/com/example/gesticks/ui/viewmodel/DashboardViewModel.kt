@@ -37,15 +37,15 @@ class DashboardViewModel(application: Application) : AndroidViewModel(applicatio
             try {
                 val response = repository.getTickets(token)
                 if (response.isSuccessful) {
-                    val allTickets = response.body() ?: emptyList()
+                    val allTickets = response.body()?.data ?: emptyList()
                     val userTickets = allTickets.filter { it.authorId == userId }
                     
                     // Sincronizar con el reloj
                     wearSyncManager.syncTickets(userTickets)
                     
                     _countOpen.value = userTickets.count { it.status.lowercase() == "abierto" }
-                    _countProcess.value = userTickets.count { it.status.lowercase() == "en proceso" }
-                    _countResolved.value = userTickets.count { it.status.lowercase() == "cerrado" || it.status.lowercase() == "resuelto" }
+                    _countProcess.value = userTickets.count { it.status.lowercase() == "pendiente" }
+                    _countResolved.value = userTickets.count { it.status.lowercase() == "resuelto" }
                 }
             } catch (e: Exception) {
                 // Error

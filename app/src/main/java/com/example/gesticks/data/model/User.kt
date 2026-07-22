@@ -12,17 +12,28 @@ data class User(
     val email: String,
     @SerializedName("telefono")
     val phone: String? = null,
-    @SerializedName("contrasena")
-    val password: String,
     @SerializedName("estatus")
     val status: Int,
     @SerializedName("departamento_id")
     val departmentId: Int,
     @SerializedName("permisos")
-    val permissions: List<Int>
+    val permissions: List<Int>,
+    @SerializedName("must_change_password")
+    val mustChangePassword: Boolean = false,
+    @SerializedName("categorias_asignables")
+    val assignableCategories: List<Int>? = null
 )
 
 data class LoginResponse(
-    val token: String?,
+    val success: Boolean,
+    val message: String,
+    @SerializedName("access_token")
+    val accessToken: String?,
+    @SerializedName("token_type")
+    val tokenType: String?,
     val user: User?
+)
+
+data class DataWrapper<T>(
+    val data: T
 )

@@ -8,7 +8,7 @@ import retrofit2.converter.gson.GsonConverterFactory
 object RetrofitInstance {
     // Nota: Deberás reemplazar esto con la URL de tu API intermedia (Node.js, etc.)
     // que se conecta a MongoDB, ya que no se recomienda conectar directo desde Android.
-    private const val BASE_URL = "https://gestix-backend.onrender.com/"
+    private const val BASE_URL = "https://backend-movil-4x6m.onrender.com/api/"
 
     private val logging = HttpLoggingInterceptor().apply {
         level = HttpLoggingInterceptor.Level.BODY

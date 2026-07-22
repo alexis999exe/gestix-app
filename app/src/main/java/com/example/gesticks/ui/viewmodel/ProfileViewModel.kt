@@ -39,12 +39,12 @@ class ProfileViewModel(application: Application) : AndroidViewModel(application)
             try {
                 val response = repository.getTickets(token)
                 if (response.isSuccessful) {
-                    val allTickets = response.body() ?: emptyList()
+                    val allTickets = response.body()?.data ?: emptyList()
                     val userTickets = allTickets.filter { it.authorId == userId }
                     
                     _totalTickets.value = userTickets.size
-                    _resolvedTickets.value = userTickets.count { it.status.lowercase() == "cerrado" || it.status.lowercase() == "resuelto" }
-                    _activeTickets.value = userTickets.count { it.status.lowercase() != "cerrado" && it.status.lowercase() != "resuelto" }
+                    _resolvedTickets.value = userTickets.count { it.status.lowercase() == "resuelto" }
+                    _activeTickets.value = userTickets.count { it.status.lowercase() != "resuelto" }
                 }
             } catch (e: Exception) {
                 // Error
